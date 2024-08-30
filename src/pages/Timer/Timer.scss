@@ -1,0 +1,70 @@
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  margin: auto;
+
+  .timer-display {
+    font-size: 48px;
+    font-family: "Arial", sans-serif;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .time-inputs {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+
+    input {
+      width: 60px;
+      padding: 10px;
+      font-size: 16px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  }
+
+  .timer-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+
+    button {
+      width: 120px;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:first-of-type {
+        background-color: #007aff;
+        color: white;
+      }
+
+      &:last-of-type {
+        background-color: #ff3b30;
+        color: white;
+      }
+
+      &:disabled {
+        background-color: #b0b0b0;
+        cursor: not-allowed;
+      }
+
+      &:hover:not(:disabled) {
+        background-color: darken(#007aff, 10%);
+      }
+    }
+  }
+}
