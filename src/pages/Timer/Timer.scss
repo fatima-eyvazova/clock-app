@@ -1,35 +1,61 @@
 .timer {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  background-color: #100f0f;
+  width: 100vw;
+  height: 100vh;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 300px;
-  margin: auto;
+
+  .timer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1c1c1e;
+    border-radius: 30px;
+    padding: 30px;
+    width: 320px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  }
 
   .timer-display {
-    font-size: 48px;
-    font-family: "Arial", sans-serif;
-    margin-bottom: 20px;
-    color: #333;
+    font-size: 60px;
+    font-family: "SF Pro Display", "Arial", sans-serif;
+    color: white;
+    margin-bottom: 30px;
   }
 
   .time-inputs {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
 
-    input {
-      width: 60px;
-      padding: 10px;
-      font-size: 16px;
-      text-align: center;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+    .time-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      span {
+        font-size: 16px;
+        color: #a1a1a1;
+        margin-top: 5px;
+      }
+
+      input {
+        width: 80px;
+        height: 50px;
+        padding: 10px;
+        font-size: 24px;
+        text-align: center;
+        border: none;
+        border-radius: 10px;
+        background-color: #2c2c2e;
+        color: white;
+        outline: none;
+      }
     }
   }
 
@@ -37,24 +63,29 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
+    margin-top: 20px;
 
     button {
-      width: 120px;
-      padding: 10px;
-      font-size: 16px;
+      width: 100px;
+      height: 100px;
+      font-size: 18px;
       border: none;
-      border-radius: 8px;
+      border-radius: 50%;
       cursor: pointer;
       transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
 
       &:first-of-type {
-        background-color: #007aff;
+        background-color: #4d4f52;
         color: white;
       }
 
       &:last-of-type {
-        background-color: #ff3b30;
-        color: white;
+        background-color: rgba(52, 199, 89, 0.1);
+        color: #34c759;
       }
 
       &:disabled {
@@ -63,7 +94,29 @@
       }
 
       &:hover:not(:disabled) {
-        background-color: darken(#007aff, 10%);
+        background-color: darken(#3b3f42, 10%);
+      }
+    }
+  }
+
+  .timer-history {
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+    color: #a1a1a1;
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        font-size: 14px;
+        margin-bottom: 5px;
       }
     }
   }
