@@ -35,6 +35,9 @@ const Timer: React.FC = () => {
               },
               ...prevHistory,
             ]);
+            setHours(0);
+            setMinutes(0);
+            setSeconds(0);
 
             return 0;
           }
@@ -57,7 +60,6 @@ const Timer: React.FC = () => {
     setIsActive(false);
     setRemainingTime(0);
   };
-
   const formatTime = (time: number) => {
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
@@ -70,50 +72,69 @@ const Timer: React.FC = () => {
 
   return (
     <div className="timer">
-      <div className="timer-display">{formatTime(remainingTime / 1000)}</div>
-      <div className="time-inputs">
-        <input
-          type="number"
-          value={hours}
-          onChange={(e) => setHours(Number(e.target.value))}
-          placeholder="Hours"
-          min="0"
+      <div className="timer-container">
+        {isActive || remainingTime > 0 ? (
+          <div className="timer-display">
+            {formatTime(remainingTime / 1000)}
+          </div>
+        ) : null}
+
+        {!isActive ? (
+          <div className="time-inputs">
+            <div className="time-label">
+              <input
+                type="number"
+                value={hours}
+                onChange={(e) => setHours(Number(e.target.value))}
+                placeholder="00"
+                min="0"
+              />
+              <span>hours</span>
+            </div>
+            <div className="time-label">
+              <input
+                type="number"
+                value={minutes}
+                onChange={(e) => setMinutes(Number(e.target.value))}
+                placeholder="00"
+                min="0"
+              />
+              <span>minutes</span>
+            </div>
+            <div className="time-label">
+              <input
+                type="number"
+                value={seconds}
+                onChange={(e) => setSeconds(Number(e.target.value))}
+                placeholder="00"
+                min="0"
+              />
+              <span>seconds</span>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="timer-buttons">
+          <button onClick={handleStart} disabled={isActive}>
+            Start
+          </button>
+          <button onClick={handleStop}>Stop</button>
+        </div>
+        <audio
+          ref={audioRef}
+          src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
+          preload="auto"
         />
-        <input
-          type="number"
-          value={minutes}
-          onChange={(e) => setMinutes(Number(e.target.value))}
-          placeholder="Minutes"
-          min="0"
-        />
-        <input
-          type="number"
-          value={seconds}
-          onChange={(e) => setSeconds(Number(e.target.value))}
-          placeholder="Seconds"
-          min="0"
-        />
-      </div>
-      <div className="timer-buttons">
-        <button onClick={handleStart} disabled={isActive}>
-          Start
-        </button>
-        <button onClick={handleStop}>Stop</button>
-      </div>
-      <audio
-        ref={audioRef}
-        src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
-        preload="auto"
-      />
-      <div className="timer-history">
-        <h2>Timer History</h2>
-        <ul>
-          {history.map((entry, index) => (
-            <li key={index}>
-              Set for {entry.duration} - Ended at {entry.endTime}
-            </li>
-          ))}
-        </ul>
+        <div className="timer-history">
+          <h2>Timer History</h2>
+          <ul>
+            {history.map((entry, index) => (
+              <li key={index}>
+                Set for {entry.duration} - Ended at {entry.endTime}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
