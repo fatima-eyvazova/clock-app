@@ -10,6 +10,7 @@ const Alarm: React.FC = () => {
 
   const [showForm, setShowForm] = useState<boolean>(false);
   const [newAlarmTime, setNewAlarmTime] = useState<string>("");
+  const [showNotification, setShowNotification] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -20,6 +21,34 @@ const Alarm: React.FC = () => {
     setNewAlarmTime("");
     setShowForm(false);
   };
+
+  const handleNotificationClose = () => {
+    setShowNotification(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
+  useEffect(() => {
+    const audioElement = audioRef.current;
+
+    if (audioElement) {
+      audioElement.addEventListener("play", () => setShowNotification(true));
+      audioElement.addEventListener("ended", () => setShowNotification(false));
+    }
+
+    return () => {
+      if (audioElement) {
+        audioElement.removeEventListener("play", () =>
+          setShowNotification(true)
+        );
+        audioElement.removeEventListener("ended", () =>
+          setShowNotification(false)
+        );
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const checkAlarms = () => {
@@ -34,6 +63,9 @@ const Alarm: React.FC = () => {
           if (audioRef.current) {
             audioRef.current.play();
           }
+          setShowNotification(true);
+        } else if (alarm.isActive) {
+          setShowNotification(false);
         }
       });
     };
@@ -41,6 +73,7 @@ const Alarm: React.FC = () => {
     const interval = setInterval(checkAlarms, 60000);
     return () => clearInterval(interval);
   }, [alarms]);
+
   const handleToggleAlarm = (id: number) => {
     dispatch(toggleAlarm(id));
   };
@@ -73,7 +106,12 @@ const Alarm: React.FC = () => {
       )}
       <ul className="alarm-list">
         {alarms.map((alarm) => (
-          <li key={alarm.id} className="alarm-item">
+          <li
+            key={alarm.id}
+            className={`alarm-item ${
+              alarm.isActive ? "alarm-active" : "alarm-disabled"
+            }`}
+          >
             <div className="alarm-time">{alarm.time}</div>
             <label className="switch">
               <input
@@ -92,6 +130,14 @@ const Alarm: React.FC = () => {
           </li>
         ))}
       </ul>
+      {showNotification && (
+        <div className="notification">
+          <p>⏰ Time's up!</p>
+          <button onClick={handleNotificationClose} className="close-button">
+            X
+          </button>
+        </div>
+      )}
       <audio
         ref={audioRef}
         src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
