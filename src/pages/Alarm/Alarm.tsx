@@ -16,6 +16,14 @@ const Alarm: React.FC = () => {
 
   const handleAddAlarm = () => {
     if (!newAlarmTime) return;
+
+    const existingAlarm = alarms.find((alarm) => alarm.time === newAlarmTime);
+
+    if (existingAlarm) {
+      alert("Alarm for this time already exists.");
+      return;
+    }
+
     const id = Date.now();
     dispatch(addAlarm({ id, time: newAlarmTime, isActive: true }));
     setNewAlarmTime("");
@@ -53,21 +61,25 @@ const Alarm: React.FC = () => {
   useEffect(() => {
     const checkAlarms = () => {
       const now = new Date();
-      alarms.forEach((alarm) => {
-        const alarmTime = new Date(`1970-01-01T${alarm.time}:00`);
-        if (
-          alarm.isActive &&
-          now.getHours() === alarmTime.getHours() &&
-          now.getMinutes() === alarmTime.getMinutes()
-        ) {
-          if (audioRef.current) {
-            audioRef.current.play();
+      alarms
+        .slice()
+        .sort((a, b) => a.time.localeCompare(b.time))
+        .forEach((alarm) => {
+          const alarmTime = new Date(`1970-01-01T${alarm.time}:00`);
+          if (
+            alarm.isActive &&
+            now.getHours() === alarmTime.getHours() &&
+            now.getMinutes() === alarmTime.getMinutes()
+          ) {
+            if (audioRef.current) {
+              audioRef.current.play();
+            }
+            setShowNotification(true);
+            dispatch(toggleAlarm(alarm.id));
+          } else if (alarm.isActive) {
+            setShowNotification(false);
           }
-          setShowNotification(true);
-        } else if (alarm.isActive) {
-          setShowNotification(false);
-        }
-      });
+        });
     };
 
     const interval = setInterval(checkAlarms, 60000);
@@ -104,32 +116,37 @@ const Alarm: React.FC = () => {
           </button>
         </div>
       )}
+
       <ul className="alarm-list">
-        {alarms.map((alarm) => (
-          <li
-            key={alarm.id}
-            className={`alarm-item ${
-              alarm.isActive ? "alarm-active" : "alarm-disabled"
-            }`}
-          >
-            <div className="alarm-time">{alarm.time}</div>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={alarm.isActive}
-                onChange={() => handleToggleAlarm(alarm.id)}
-              />
-              <span className="slider"></span>
-            </label>
-            <button
-              onClick={() => handleDeleteAlarm(alarm.id)}
-              className="delete-alarm"
+        {alarms
+          .slice()
+          .sort((a, b) => a.time.localeCompare(b.time))
+          .map((alarm) => (
+            <li
+              key={alarm.id}
+              className={`alarm-item ${
+                alarm.isActive ? "alarm-active" : "alarm-disabled"
+              }`}
             >
-              Delete
-            </button>
-          </li>
-        ))}
+              <div className="alarm-time">{alarm.time}</div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={alarm.isActive}
+                  onChange={() => handleToggleAlarm(alarm.id)}
+                />
+                <span className="slider"></span>
+              </label>
+              <button
+                onClick={() => handleDeleteAlarm(alarm.id)}
+                className="delete-alarm"
+              >
+                Delete
+              </button>
+            </li>
+          ))}
       </ul>
+
       {showNotification && (
         <div className="notification">
           <p>⏰ Time's up!</p>

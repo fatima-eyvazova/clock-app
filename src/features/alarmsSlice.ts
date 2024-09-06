@@ -19,7 +19,15 @@ const alarmSlice = createSlice({
   initialState,
   reducers: {
     addAlarm(state, action: PayloadAction<Alarm>) {
-      state.alarms.push(action.payload);
+      const existingAlarm = state.alarms.find(
+        (a) => a.time === action.payload.time
+      );
+
+      if (!existingAlarm) {
+        state.alarms.push(action.payload);
+      } else {
+        console.warn("Alarm for this time already exists.");
+      }
     },
     toggleAlarm(state, action: PayloadAction<number>) {
       const alarm = state.alarms.find((a) => a.id === action.payload);
