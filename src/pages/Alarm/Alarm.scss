@@ -23,6 +23,7 @@
       font-weight: bold;
       margin: 0;
       color: white;
+
       div {
         margin-left: 10px;
       }
@@ -79,6 +80,7 @@
 
   .alarm-list {
     list-style: none;
+    padding: 0;
 
     .alarm-item {
       display: flex;
@@ -93,8 +95,7 @@
         color: #f1eeee;
 
         &.inactive {
-          color: #110e0e;
-          text-decoration: line-through;
+          color: white;
         }
       }
 
