@@ -10,6 +10,7 @@ import {
   deleteLap,
 } from "../../features/stopwatchSlice";
 import "./Stopwatch.scss";
+import { setTime } from "../../features/timerSlice";
 
 const Stopwatch: React.FC = () => {
   const dispatch = useDispatch();
@@ -18,6 +19,7 @@ const Stopwatch: React.FC = () => {
   );
 
   const intervalId = useRef<number | null>(null);
+  const savedNow = localStorage.getItem("stopwatch-now");
 
   useEffect(() => {
     if (isActive) {
@@ -38,7 +40,23 @@ const Stopwatch: React.FC = () => {
         intervalId.current = null;
       }
     };
-  }, [isActive, dispatch]);
+  }, [isActive]);
+
+  useEffect(() => {
+    if (savedNow) {
+      const now = Date.now();
+      const savedTime = parseInt(savedNow);
+      const timeDiff = now - savedTime;
+      dispatch(setTime(time + timeDiff));
+      intervalId.current = time + timeDiff;
+    }
+  }, [savedNow]);
+
+  useEffect(() => {
+    return () => {
+      localStorage.setItem("stopwatch-now", JSON.stringify(Date.now()));
+    };
+  }, []);
 
   const formatTime = (milliseconds: number) => {
     const minutes = Math.floor(milliseconds / 60000);

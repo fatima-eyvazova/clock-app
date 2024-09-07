@@ -10,33 +10,37 @@ interface AlarmState {
   alarms: Alarm[];
 }
 
-const initialState: AlarmState = {
-  alarms: [],
+const loadAlarmsFromLocalStorage = (): AlarmState => {
+  const savedAlarms = localStorage.getItem("alarmState");
+  return savedAlarms ? JSON.parse(savedAlarms) : { alarms: [] };
 };
+
+const saveAlarmsToLocalStorage = (state: AlarmState) => {
+  localStorage.setItem("alarmState", JSON.stringify(state));
+};
+
+const initialState: AlarmState = loadAlarmsFromLocalStorage();
 
 const alarmSlice = createSlice({
   name: "alarm",
   initialState,
   reducers: {
     addAlarm(state, action: PayloadAction<Alarm>) {
-      const existingAlarm = state.alarms.find(
-        (a) => a.time === action.payload.time
-      );
-
-      if (!existingAlarm) {
-        state.alarms.push(action.payload);
-      } else {
-        console.warn("Alarm for this time already exists.");
-      }
+      state.alarms.push(action.payload);
+      saveAlarmsToLocalStorage(state);
     },
     toggleAlarm(state, action: PayloadAction<number>) {
-      const alarm = state.alarms.find((a) => a.id === action.payload);
+      const alarm = state.alarms.find((alarm) => alarm.id === action.payload);
       if (alarm) {
         alarm.isActive = !alarm.isActive;
+        saveAlarmsToLocalStorage(state);
       }
     },
     deleteAlarm(state, action: PayloadAction<number>) {
-      state.alarms = state.alarms.filter((a) => a.id !== action.payload);
+      state.alarms = state.alarms.filter(
+        (alarm) => alarm.id !== action.payload
+      );
+      saveAlarmsToLocalStorage(state);
     },
   },
 });

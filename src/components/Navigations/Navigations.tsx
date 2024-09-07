@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaGlobe, FaBell, FaStopwatch, FaHourglassHalf } from "react-icons/fa";
 import "./Navigations.scss";
 
 const Navigations: React.FC = () => {
   const location = useLocation();
+
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("stopwatch-now");
+      localStorage.removeItem("timer-now");
+    };
+  }, []);
 
   return (
     <nav className="navigation">

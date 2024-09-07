@@ -1,91 +1,173 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { setTime, start, stop } from "../../features/timerSlice";
 import "./Timer.scss";
-
-interface TimerHistory {
-  duration: string;
-  endTime: string;
-}
+import TimerHistory from "../../components/TimerHistory/TimerHistory";
 
 const Timer: React.FC = () => {
-  const [hours, setHours] = useState<number>(0);
-  const [minutes, setMinutes] = useState<number>(0);
-  const [seconds, setSeconds] = useState<number>(0);
-  const [isActive, setIsActive] = useState<boolean>(false);
-  const [remainingTime, setRemainingTime] = useState<number>(0);
-  const [history, setHistory] = useState<TimerHistory[]>([]);
+  const dispatch = useDispatch();
+  const time = useSelector((state: RootState) => state.timer.time);
+  const isActive = useSelector((state: RootState) => state.timer.isActive);
+  // const history = useSelector((state: RootState) => state.timer.history);
+
+  const [isEditing, setIsEditing] = useState<boolean>(true);
+  const [initialTime, setInitialTime] = useState<number>(time);
+  const [showNotification, setShowNotification] = useState<boolean>(false);
+
   const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const savedNow = localStorage.getItem("timer-now");
+
   useEffect(() => {
-    if (isActive) {
-      timerRef.current = window.setInterval(() => {
-        setRemainingTime((prevTime) => {
-          if (prevTime <= 0) {
-            clearInterval(timerRef.current!);
-            setIsActive(false);
-            if (audioRef.current) {
-              audioRef.current.play();
-            }
-
-            const endTime = new Date().toLocaleString();
-            setHistory((prevHistory) => [
-              {
-                duration: formatTime(hours * 3600 + minutes * 60 + seconds),
-                endTime,
-              },
-              ...prevHistory,
-            ]);
-            setHours(0);
-            setMinutes(0);
-            setSeconds(0);
-
-            return 0;
-          }
-          return prevTime - 1000;
-        });
+    if (isActive && time > 0) {
+      timerRef.current = setInterval(() => {
+        dispatch(setTime(time - 1000));
       }, 1000);
-    } else if (!isActive && remainingTime !== 0) {
+    } else if (!isActive && time !== 0) {
       clearInterval(timerRef.current!);
     }
+
+    if (time <= 0 && isActive) {
+      clearInterval(timerRef.current!);
+      dispatch(stop());
+      setIsEditing(true);
+      dispatch(setTime(initialTime));
+      if (audioRef.current) {
+        audioRef.current.play();
+      }
+      setShowNotification(true);
+    }
+
     return () => clearInterval(timerRef.current!);
-  }, [isActive, remainingTime]);
+  }, [isActive, time, dispatch, initialTime]);
+
+  useEffect(() => {
+    const audioElement = audioRef.current;
+
+    if (audioElement) {
+      audioElement.addEventListener("play", () => setShowNotification(true));
+      audioElement.addEventListener("ended", () => setShowNotification(false));
+    }
+
+    return () => {
+      if (audioElement) {
+        audioElement.removeEventListener("play", () =>
+          setShowNotification(true)
+        );
+        audioElement.removeEventListener("ended", () =>
+          setShowNotification(false)
+        );
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (savedNow) {
+      const now = Date.now();
+      const savedTime = parseInt(savedNow);
+      const timeDiff = now - savedTime;
+      console.log({ timeDiff });
+
+      if (time >= timeDiff) {
+        dispatch(setTime(Math.floor((time - timeDiff) / 1000)));
+      } else {
+        dispatch(setTime(0));
+        dispatch(stop());
+      }
+
+      timerRef.current = Math.floor((time - timeDiff) / 1000);
+    }
+  }, [savedNow]);
+
+  useEffect(() => {
+    return () => {
+      localStorage.setItem("timer-now", JSON.stringify(Date.now()));
+    };
+  }, []);
 
   const handleStart = () => {
-    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-    setRemainingTime(totalSeconds * 1000);
-    setIsActive(true);
+    setIsEditing(false);
+    setInitialTime(time);
+    dispatch(start());
   };
 
-  const handleStop = () => {
-    setIsActive(false);
-    setRemainingTime(0);
+  const handleNotificationClose = () => {
+    setShowNotification(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
+
   const formatTime = (time: number) => {
-    const hours = Math.floor(time / 3600);
-    const minutes = Math.floor((time % 3600) / 60);
-    const seconds = time % 60;
+    const hours = Math.floor(time / 3600000);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
       2,
       "0"
     )}:${String(seconds).padStart(2, "0")}`;
   };
 
+  const isStartButtonDisabled = () => {
+    const hours = Math.floor(time / 3600000);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+
+    return hours === 0 && minutes === 0 && seconds === 0;
+  };
+
+  const isStopButtonDisabled = () => {
+    const hours = Math.floor(time / 3600000);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+
+    return (hours === 0 && minutes === 0 && seconds === 0) || !isActive;
+  };
+
+  const handleStop = () => {
+    dispatch(stop());
+    setIsEditing(false);
+  };
+
+  const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hours = Number(e.target.value);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+    const newTime = hours * 3600000 + minutes * 60000 + seconds * 1000;
+    dispatch(setTime(newTime));
+  };
+
+  const handleMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hours = Math.floor(time / 3600000);
+    const minutes = Number(e.target.value);
+    const seconds = Math.floor((time % 60000) / 1000);
+    const newTime = hours * 3600000 + minutes * 60000 + seconds * 1000;
+    dispatch(setTime(newTime));
+  };
+
+  const handleSecondsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hours = Math.floor(time / 3600000);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Number(e.target.value);
+    const newTime = hours * 3600000 + minutes * 60000 + seconds * 1000;
+    dispatch(setTime(newTime));
+  };
+
   return (
     <div className="timer">
       <div className="timer-container">
-        {isActive || remainingTime > 0 ? (
-          <div className="timer-display">
-            {formatTime(remainingTime / 1000)}
-          </div>
-        ) : null}
-
-        {!isActive ? (
+        {isEditing ? (
           <div className="time-inputs">
             <div className="time-label">
               <input
                 type="number"
-                value={hours}
-                onChange={(e) => setHours(Number(e.target.value))}
+                name="hours"
+                value={Math.floor(time / 3600000)}
+                onFocus={() => setIsEditing(true)}
+                onChange={handleHoursChange}
                 placeholder="00"
                 min="0"
               />
@@ -94,8 +176,10 @@ const Timer: React.FC = () => {
             <div className="time-label">
               <input
                 type="number"
-                value={minutes}
-                onChange={(e) => setMinutes(Number(e.target.value))}
+                name="minutes"
+                value={Math.floor((time % 3600000) / 60000)}
+                onFocus={() => setIsEditing(true)}
+                onChange={handleMinutesChange}
                 placeholder="00"
                 min="0"
               />
@@ -104,38 +188,46 @@ const Timer: React.FC = () => {
             <div className="time-label">
               <input
                 type="number"
-                value={seconds}
-                onChange={(e) => setSeconds(Number(e.target.value))}
+                name="seconds"
+                value={Math.floor((time % 60000) / 1000)}
+                onFocus={() => setIsEditing(true)}
+                onChange={handleSecondsChange}
                 placeholder="00"
                 min="0"
               />
               <span>seconds</span>
             </div>
           </div>
-        ) : null}
-
+        ) : (
+          <div className="timer-display">{formatTime(time)}</div>
+        )}
         <div className="timer-buttons">
-          <button onClick={handleStart} disabled={isActive}>
+          <button onClick={handleStart} disabled={isStartButtonDisabled()}>
             Start
           </button>
-          <button onClick={handleStop}>Stop</button>
+          <button
+            className="stop-btn"
+            onClick={handleStop}
+            disabled={isStopButtonDisabled()}
+          >
+            Stop
+          </button>
         </div>
+        {showNotification && (
+          <div className="notification">
+            <p>⏰ Time's up!</p>
+            <button onClick={handleNotificationClose} className="close-button">
+              X
+            </button>
+          </div>
+        )}
         <audio
           ref={audioRef}
           src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
           preload="auto"
         />
-        <div className="timer-history">
-          <h2>Timer History</h2>
-          <ul>
-            {history.map((entry, index) => (
-              <li key={index}>
-                Set for {entry.duration} - Ended at {entry.endTime}
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
+      <TimerHistory />
     </div>
   );
 };
