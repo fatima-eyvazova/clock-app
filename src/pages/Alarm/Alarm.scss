@@ -166,6 +166,9 @@
         }
       }
     }
+    .alarm-item.alarm-disabled .alarm-time {
+      color: #7c6d6d;
+    }
   }
 
   .notification {

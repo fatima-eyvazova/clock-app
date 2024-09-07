@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import WorldClock from "./pages/WorldClock/WorldClock";
 import Stopwatch from "./pages/Stopwatch/Stopwatch";
 import Timer from "./pages/Timer/Timer";
