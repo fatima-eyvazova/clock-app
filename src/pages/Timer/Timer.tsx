@@ -9,7 +9,7 @@ const Timer: React.FC = () => {
   const dispatch = useDispatch();
   const time = useSelector((state: RootState) => state.timer.time);
   const isActive = useSelector((state: RootState) => state.timer.isActive);
-  // const history = useSelector((state: RootState) => state.timer.history);
+  const history = useSelector((state: RootState) => state.timer.history);
 
   const [isEditing, setIsEditing] = useState<boolean>(true);
   const [initialTime, setInitialTime] = useState<number>(time);
@@ -18,19 +18,17 @@ const Timer: React.FC = () => {
   const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const savedNow = localStorage.getItem("timer-now");
-
   useEffect(() => {
     if (isActive && time > 0) {
-      timerRef.current = setInterval(() => {
+      timerRef.current = window.setInterval(() => {
         dispatch(setTime(time - 1000));
       }, 1000);
     } else if (!isActive && time !== 0) {
-      clearInterval(timerRef.current!);
+      window.clearInterval(timerRef.current!);
     }
 
     if (time <= 0 && isActive) {
-      clearInterval(timerRef.current!);
+      window.clearInterval(timerRef.current!);
       dispatch(stop());
       setIsEditing(true);
       dispatch(setTime(initialTime));
@@ -40,7 +38,7 @@ const Timer: React.FC = () => {
       setShowNotification(true);
     }
 
-    return () => clearInterval(timerRef.current!);
+    return () => window.clearInterval(timerRef.current!);
   }, [isActive, time, dispatch, initialTime]);
 
   useEffect(() => {
@@ -64,28 +62,33 @@ const Timer: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (savedNow) {
-      const now = Date.now();
-      const savedTime = parseInt(savedNow);
-      const timeDiff = now - savedTime;
-      console.log({ timeDiff });
+    const savedTime = localStorage.getItem("timer-time");
+    const savedIsActive = localStorage.getItem("timer-isActive");
 
-      if (time >= timeDiff) {
-        dispatch(setTime(Math.floor((time - timeDiff) / 1000)));
-      } else {
+    if (savedTime && savedIsActive) {
+      const timeDiff =
+        Date.now() - parseInt(localStorage.getItem("timer-lastSaved") || "0");
+      const remainingTime = Math.max(parseInt(savedTime) - timeDiff, 0);
+
+      if (savedIsActive === "true" && remainingTime > 0) {
+        dispatch(setTime(remainingTime));
+        dispatch(start());
+      } else if (remainingTime <= 0) {
         dispatch(setTime(0));
         dispatch(stop());
       }
-
-      timerRef.current = Math.floor((time - timeDiff) / 1000);
+    } else {
+      dispatch(stop());
     }
-  }, [savedNow]);
+  }, [dispatch]);
 
   useEffect(() => {
     return () => {
-      localStorage.setItem("timer-now", JSON.stringify(Date.now()));
+      localStorage.setItem("timer-time", time.toString());
+      localStorage.setItem("timer-isActive", isActive.toString());
+      localStorage.setItem("timer-lastSaved", Date.now().toString());
     };
-  }, []);
+  }, [time, isActive]);
 
   const handleStart = () => {
     setIsEditing(false);
@@ -112,19 +115,11 @@ const Timer: React.FC = () => {
   };
 
   const isStartButtonDisabled = () => {
-    const hours = Math.floor(time / 3600000);
-    const minutes = Math.floor((time % 3600000) / 60000);
-    const seconds = Math.floor((time % 60000) / 1000);
-
-    return hours === 0 && minutes === 0 && seconds === 0;
+    return time <= 0;
   };
 
   const isStopButtonDisabled = () => {
-    const hours = Math.floor(time / 3600000);
-    const minutes = Math.floor((time % 3600000) / 60000);
-    const seconds = Math.floor((time % 60000) / 1000);
-
-    return (hours === 0 && minutes === 0 && seconds === 0) || !isActive;
+    return time <= 0 || !isActive;
   };
 
   const handleStop = () => {
@@ -199,7 +194,9 @@ const Timer: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="timer-display">{formatTime(time)}</div>
+          <div className="timer-display">
+            {isActive || time > 0 ? formatTime(time) : "00:00:00"}
+          </div>
         )}
         <div className="timer-buttons">
           <button onClick={handleStart} disabled={isStartButtonDisabled()}>

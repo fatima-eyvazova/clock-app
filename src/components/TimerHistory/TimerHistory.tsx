@@ -5,7 +5,7 @@ import "./TimerHistory.scss";
 
 const TimerHistory: React.FC = () => {
   const [showHistory, setShowHistory] = useState(false);
-  const { history } = useSelector((state: RootState) => state.timer);
+  const history = useSelector((state: RootState) => state.timer.history);
 
   const formatTime = (milliseconds: number) => {
     const minutes = Math.floor(milliseconds / 60000);
@@ -30,8 +30,9 @@ const TimerHistory: React.FC = () => {
           <ul>
             {history.map((entry, index) => (
               <li key={index}>
-                Set for {formatTime(entry.startTime)} - Ended at{" "}
-                {formatTime(entry.endTime)}
+                {`Started: ${formatTime(entry.startTime)} - Ended: ${formatTime(
+                  entry.endTime
+                )}`}
               </li>
             ))}
           </ul>
