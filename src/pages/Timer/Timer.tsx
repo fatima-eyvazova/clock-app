@@ -1,107 +1,29 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { setTime, start, stop } from "../../features/timerSlice";
 import "./Timer.scss";
 import TimerHistory from "../../components/TimerHistory/TimerHistory";
 
-const Timer: React.FC = () => {
+interface Props {
+  isEditing: boolean;
+  setIsEditing: (bool: boolean) => void;
+  setInitialTime: (time: number) => void;
+}
+
+const Timer: React.FC<Props> = ({
+  isEditing,
+  setIsEditing,
+  setInitialTime,
+}) => {
   const dispatch = useDispatch();
   const time = useSelector((state: RootState) => state.timer.time);
   const isActive = useSelector((state: RootState) => state.timer.isActive);
-  const history = useSelector((state: RootState) => state.timer.history);
-
-  const [isEditing, setIsEditing] = useState<boolean>(true);
-  const [initialTime, setInitialTime] = useState<number>(time);
-  const [showNotification, setShowNotification] = useState<boolean>(false);
-
-  const timerRef = useRef<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (isActive && time > 0) {
-      timerRef.current = window.setInterval(() => {
-        dispatch(setTime(time - 1000));
-      }, 1000);
-    } else if (!isActive && time !== 0) {
-      window.clearInterval(timerRef.current!);
-    }
-
-    if (time <= 0 && isActive) {
-      window.clearInterval(timerRef.current!);
-      dispatch(stop());
-      setIsEditing(true);
-      dispatch(setTime(initialTime));
-      if (audioRef.current) {
-        audioRef.current.play();
-      }
-      setShowNotification(true);
-    }
-
-    return () => window.clearInterval(timerRef.current!);
-  }, [isActive, time, dispatch, initialTime]);
-
-  useEffect(() => {
-    const audioElement = audioRef.current;
-
-    if (audioElement) {
-      audioElement.addEventListener("play", () => setShowNotification(true));
-      audioElement.addEventListener("ended", () => setShowNotification(false));
-    }
-
-    return () => {
-      if (audioElement) {
-        audioElement.removeEventListener("play", () =>
-          setShowNotification(true)
-        );
-        audioElement.removeEventListener("ended", () =>
-          setShowNotification(false)
-        );
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const savedTime = localStorage.getItem("timer-time");
-    const savedIsActive = localStorage.getItem("timer-isActive");
-
-    if (savedTime && savedIsActive) {
-      const timeDiff =
-        Date.now() - parseInt(localStorage.getItem("timer-lastSaved") || "0");
-      const remainingTime = Math.max(parseInt(savedTime) - timeDiff, 0);
-
-      if (savedIsActive === "true" && remainingTime > 0) {
-        dispatch(setTime(remainingTime));
-        dispatch(start());
-      } else if (remainingTime <= 0) {
-        dispatch(setTime(0));
-        dispatch(stop());
-      }
-    } else {
-      dispatch(stop());
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
-    return () => {
-      localStorage.setItem("timer-time", time.toString());
-      localStorage.setItem("timer-isActive", isActive.toString());
-      localStorage.setItem("timer-lastSaved", Date.now().toString());
-    };
-  }, [time, isActive]);
 
   const handleStart = () => {
     setIsEditing(false);
     setInitialTime(time);
     dispatch(start());
-  };
-
-  const handleNotificationClose = () => {
-    setShowNotification(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
   };
 
   const formatTime = (time: number) => {
@@ -210,19 +132,6 @@ const Timer: React.FC = () => {
             Stop
           </button>
         </div>
-        {showNotification && (
-          <div className="notification">
-            <p>⏰ Time's up!</p>
-            <button onClick={handleNotificationClose} className="close-button">
-              X
-            </button>
-          </div>
-        )}
-        <audio
-          ref={audioRef}
-          src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
-          preload="auto"
-        />
       </div>
       <TimerHistory />
     </div>

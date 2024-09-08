@@ -3,17 +3,30 @@ import Navigations from "./components/Navigations/Navigations";
 import AlarmNotification from "./components/AlarmNotification";
 import MainRouter from "./MainRouter";
 import { useRef, useState } from "react";
+import "./App.css";
 
 function App() {
   const [showNotification, setShowNotification] = useState<boolean>(false);
+  const [showTimerNotification, setShowTimerNotification] =
+    useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timerRef = useRef<number | null>(null);
+  const audioTimerRef = useRef<HTMLAudioElement | null>(null);
 
   const handleNotificationClose = () => {
     setShowNotification(false);
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+    }
+  };
+
+  const handleTimerNotificationClose = () => {
+    setShowTimerNotification(false);
+    if (audioTimerRef.current) {
+      audioTimerRef.current.pause();
+      audioTimerRef.current.currentTime = 0;
     }
   };
 
@@ -25,6 +38,9 @@ function App() {
           showNotification={showNotification}
           setShowNotification={setShowNotification}
           audioRef={audioRef}
+          timerRef={timerRef}
+          audioTimerRef={audioTimerRef}
+          setShowTimerNotification={setShowTimerNotification}
         />
         <Navigations />
       </Router>
@@ -38,6 +54,22 @@ function App() {
       )}
       <audio
         ref={audioRef}
+        src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
+        preload="auto"
+      />
+      {showTimerNotification && (
+        <div className="notification">
+          <p>⏰ Time's up!</p>
+          <button
+            onClick={handleTimerNotificationClose}
+            className="close-button"
+          >
+            X
+          </button>
+        </div>
+      )}
+      <audio
+        ref={audioTimerRef}
         src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
         preload="auto"
       />
