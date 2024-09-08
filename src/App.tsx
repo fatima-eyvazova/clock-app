@@ -1,21 +1,47 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import WorldClock from "./pages/WorldClock/WorldClock";
-import Stopwatch from "./pages/Stopwatch/Stopwatch";
-import Timer from "./pages/Timer/Timer";
+import { BrowserRouter as Router } from "react-router-dom";
 import Navigations from "./components/Navigations/Navigations";
-import Alarm from "./pages/Alarm/Alarm";
+import AlarmNotification from "./components/AlarmNotification";
+import MainRouter from "./MainRouter";
+import { useRef, useState } from "react";
 
 function App() {
+  const [showNotification, setShowNotification] = useState<boolean>(false);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleNotificationClose = () => {
+    setShowNotification(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/world-clock" element={<WorldClock />} />
-        <Route path="/stopwatch" element={<Stopwatch />} />
-        <Route path="/timer" element={<Timer />} />
-        <Route path="/" element={<Alarm />} />
-      </Routes>
-      <Navigations />
-    </Router>
+    <>
+      <Router>
+        <AlarmNotification />
+        <MainRouter
+          showNotification={showNotification}
+          setShowNotification={setShowNotification}
+          audioRef={audioRef}
+        />
+        <Navigations />
+      </Router>
+      {showNotification && (
+        <div className="notification">
+          <p>⏰ Time's up!</p>
+          <button onClick={handleNotificationClose} className="close-button">
+            X
+          </button>
+        </div>
+      )}
+      <audio
+        ref={audioRef}
+        src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
+        preload="auto"
+      />
+    </>
   );
 }
 

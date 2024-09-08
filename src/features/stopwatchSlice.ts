@@ -69,6 +69,7 @@ const stopwatchSlice = createSlice({
         state.time = action.payload;
       }
     },
+
     deleteLap(state, action: PayloadAction<number>) {
       const index = action.payload;
       if (index < state.laps.length) {
