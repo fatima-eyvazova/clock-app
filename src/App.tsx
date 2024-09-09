@@ -4,7 +4,7 @@ import AlarmNotification from "./components/AlarmNotification";
 import MainRouter from "./MainRouter";
 import { useRef, useState } from "react";
 import "./App.css";
-
+import audioAlarm from "../public/sounds/signal-elektronnogo-budilnika-33304.mp3";
 function App() {
   const [showNotification, setShowNotification] = useState<boolean>(false);
   const [showTimerNotification, setShowTimerNotification] =
@@ -52,11 +52,7 @@ function App() {
           </button>
         </div>
       )}
-      <audio
-        ref={audioRef}
-        src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
-        preload="auto"
-      />
+      <audio ref={audioRef} src={audioAlarm} preload="auto" />
       {showTimerNotification && (
         <div className="notification">
           <p>⏰ Time's up!</p>
@@ -68,11 +64,7 @@ function App() {
           </button>
         </div>
       )}
-      <audio
-        ref={audioTimerRef}
-        src="public/sounds/signal-elektronnogo-budilnika-33304.mp3"
-        preload="auto"
-      />
+      <audio ref={audioTimerRef} src={audioAlarm} preload="auto" />
     </>
   );
 }
