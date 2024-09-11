@@ -10,6 +10,7 @@ import {
   deleteLap,
 } from "../../features/stopwatchSlice";
 import "./Stopwatch.scss";
+import LapList from "../../components/LapList/LapList";
 import { setTime } from "../../features/timerSlice";
 
 const Stopwatch: React.FC = () => {
@@ -105,55 +106,13 @@ const Stopwatch: React.FC = () => {
           {isActive ? "Lap" : "Reset"}
         </button>
       </div>
-      <div className="laps">
-        <ul>
-          {laps.length &&
-            laps.map((lapItem, index) => {
-              if (index !== laps.length - 1) {
-                return (
-                  <li key={lapItem.start + " " + lapItem.end}>
-                    {`Lap ${index + 1} : ${formatTime(
-                      Math.max(0, lapItem.end - lapItem.start)
-                    )}`}
-                    <button
-                      className="delete-lap"
-                      onClick={() => handleDeleteLap(index)}
-                    >
-                      X
-                    </button>
-                  </li>
-                );
-              }
-            })}
-          {isActive && (
-            <li key="current">
-              {`Lap ${laps.length || 1} : ${formatTime(
-                time - currentLapStart
-              )}`}
-            </li>
-          )}
-          {!isActive && laps.length && (
-            <li
-              key={
-                laps[laps.length - 1]?.start + " " + laps[laps.length - 1]?.end
-              }
-            >
-              {`Lap ${laps.length} : ${formatTime(
-                Math.max(
-                  0,
-                  laps[laps.length - 1]?.end - laps[laps.length - 1]?.start
-                )
-              )}`}
-              <button
-                className="delete-lap"
-                onClick={() => handleDeleteLap(laps.length - 1)}
-              >
-                X
-              </button>
-            </li>
-          )}
-        </ul>
-      </div>
+      <LapList
+        laps={laps}
+        time={time}
+        isActive={isActive}
+        currentLapStart={currentLapStart}
+        onDeleteLap={handleDeleteLap}
+      />
     </div>
   );
 };

@@ -5,6 +5,7 @@ interface StopwatchState {
   isActive: boolean;
   laps: { start: number; end: number }[];
   currentLapStart: number;
+  hasReset: boolean;
 }
 
 const loadStateFromLocalStorage = (): StopwatchState => {
@@ -16,6 +17,7 @@ const loadStateFromLocalStorage = (): StopwatchState => {
         isActive: false,
         laps: [],
         currentLapStart: 0,
+        hasReset: false,
       };
 };
 
@@ -28,28 +30,31 @@ const stopwatchSlice = createSlice({
     start(state) {
       if (!state.isActive) {
         state.isActive = true;
-        state.currentLapStart =
-          state.laps.length > 0
-            ? state.laps[state.laps.length - 1].end
-            : state.time;
+        if (state.hasReset) {
+          state.laps.push({ start: state.currentLapStart, end: state.time });
+          state.hasReset = false;
+        } else {
+          state.currentLapStart = state.time;
+        }
       }
     },
     stop(state) {
       if (state.isActive) {
         state.isActive = false;
-        if (state.laps.length > 0) {
-          state.laps[state.laps.length - 1].end = state.time;
-        } else {
+        if (
+          state.laps.length === 0 ||
+          state.laps[state.laps.length - 1].end === undefined
+        ) {
           state.laps.push({ start: state.currentLapStart, end: state.time });
+        } else {
+          state.laps[state.laps.length - 1].end = state.time;
         }
       }
     },
     reset(state) {
-      if (state.isActive) {
-        state.laps.push({ start: state.currentLapStart, end: state.time });
-      }
       state.time = 0;
-      state.currentLapStart = state.time;
+      state.currentLapStart = 0;
+      state.hasReset = true;
     },
     addLap(state) {
       if (state.isActive) {
@@ -65,20 +70,12 @@ const stopwatchSlice = createSlice({
       }
     },
     setTime(state, action: PayloadAction<number>) {
-      if (state.isActive) {
-        state.time = action.payload;
-      }
+      state.time = action.payload;
     },
-
     deleteLap(state, action: PayloadAction<number>) {
       const index = action.payload;
       if (index < state.laps.length) {
         const newLaps = state.laps.filter((_, i) => i !== index);
-        for (let i = 0; i < newLaps.length; i++) {
-          if (i > 0) {
-            newLaps[i].start = newLaps[i - 1].end;
-          }
-        }
         state.laps = newLaps;
         if (state.laps.length > 0) {
           state.currentLapStart = state.laps[state.laps.length - 1].end;
@@ -90,6 +87,6 @@ const stopwatchSlice = createSlice({
   },
 });
 
-export const { start, stop, reset, addLap, incrementTime, deleteLap } =
+export const { start, stop, reset, addLap, incrementTime, deleteLap, setTime } =
   stopwatchSlice.actions;
 export default stopwatchSlice.reducer;

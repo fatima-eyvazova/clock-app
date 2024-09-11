@@ -32,6 +32,8 @@ const MainRouter = ({
   const alarms = useSelector((state: RootState) => state.alarm.alarms);
   const { isActive, time } = useSelector((state: RootState) => state.timer);
   const [isEditing, setIsEditing] = useState<boolean>(true);
+  // const intervalRef = useSelector((state) => state.timer.intervalRef);
+
   const [initialTime, setInitialTime] = useState<number>(time);
 
   useEffect(() => {
@@ -77,7 +79,7 @@ const MainRouter = ({
           }
         });
     };
-    const interval = setInterval(checkAlarms, 60000);
+    const interval = setInterval(checkAlarms, 1000);
     return () => clearInterval(interval);
   }, [alarms]);
 
@@ -111,11 +113,11 @@ const MainRouter = ({
         dispatch(setTime(time - 1000));
       }, 1000);
     } else if (!isActive && time !== 0) {
-      window.clearInterval(timerRef.current!);
+      clearInterval(timerRef.current!);
     }
 
     if (time <= 0 && isActive) {
-      window.clearInterval(timerRef.current!);
+      clearInterval(timerRef.current!);
       dispatch(stop());
       setIsEditing(true);
       dispatch(setTime(initialTime));

@@ -1,0 +1,53 @@
+.timezone-list {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .timezone-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-radius: 12px;
+    width: 95vw;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    .timezone-name {
+      color: white;
+      font-size: 18px;
+    }
+
+    .current-time {
+      color: #a1a1a6;
+      font-size: 18px;
+      margin-top: 0;
+    }
+
+    .delete-button {
+      background-color: #ff453a;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 5px 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: background-color 0.2s, transform 0.2s;
+
+      &:hover {
+        background-color: #ff3b30;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}

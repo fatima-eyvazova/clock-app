@@ -38,19 +38,12 @@ const timerSlice = createSlice({
         state.lastLapStartTime = undefined;
       }
     },
-    reset(state) {
-      state.time = 0;
-      state.isActive = false;
-      state.lastLapStartTime = undefined;
-    },
-    incrementTime(state, action: PayloadAction<number>) {
-      if (state.isActive) {
-        state.time += action.payload;
-      }
+
+    clearHistory(state) {
+      state.history = [];
     },
   },
 });
 
-export const { setTime, start, stop, reset, incrementTime } =
-  timerSlice.actions;
+export const { setTime, start, stop, clearHistory } = timerSlice.actions;
 export default timerSlice.reducer;

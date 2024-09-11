@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addClock, removeClock } from "../../features/worldClockSlice";
 import { RootState } from "../../store";
+import TimezoneDropdown from "../../components/TimezoneDropdown/TimezoneDropdown";
+import TimezoneList from "../../components/TimezoneList/TimezoneList";
 import "./WorldClock.scss";
 
 interface TimezoneOption {
@@ -21,6 +23,7 @@ const WorldClock: React.FC = () => {
   const [selectedTimezones, setSelectedTimezones] = useState<string[]>([]);
   const [times, setTimes] = useState<TimeData>({});
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [localTime, setLocalTime] = useState<string>("");
 
   useEffect(() => {
     const fetchTimezones = async () => {
@@ -28,7 +31,8 @@ const WorldClock: React.FC = () => {
         const response = await fetch(
           "https://timeapi.io/api/TimeZone/AvailableTimeZones"
         );
-        if (!response.ok) throw new Error("Network response was not ok");
+        if (!response.ok)
+          throw new Error(`Failed to fetch timezones: ${response.statusText}`);
         const data: string[] = await response.json();
         const timezoneOptions: TimezoneOption[] = data.map((timezone) => ({
           name: timezone.split("/").pop()?.replace("_", " ") || "",
@@ -40,6 +44,13 @@ const WorldClock: React.FC = () => {
       }
     };
     fetchTimezones();
+  }, []);
+
+  useEffect(() => {
+    const savedTimezones = localStorage.getItem("selectedTimezones");
+    if (savedTimezones) {
+      setSelectedTimezones(JSON.parse(savedTimezones));
+    }
   }, []);
 
   useEffect(() => {
@@ -75,17 +86,38 @@ const WorldClock: React.FC = () => {
   }, [selectedTimezones]);
 
   useEffect(() => {
+    const updateLocalTime = () => {
+      setLocalTime(
+        new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      );
+    };
+
+    updateLocalTime();
+    const intervalId = setInterval(updateLocalTime, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     selectedTimezones.forEach((timezone) => {
       const city = timezone.split("/").pop()?.replace("_", " ") || "";
-      const time = times[timezone] || "Fetching...";
+      const time = times[timezone] || " ";
 
       dispatch(addClock({ city, time }));
     });
-  }, [times]);
+  }, [times, dispatch, selectedTimezones]);
 
   const handleAddClock = (timezone: string) => {
     if (!selectedTimezones.includes(timezone)) {
-      setSelectedTimezones([...selectedTimezones, timezone]);
+      const updatedTimezones = [...selectedTimezones, timezone];
+      setSelectedTimezones(updatedTimezones);
+      localStorage.setItem(
+        "selectedTimezones",
+        JSON.stringify(updatedTimezones)
+      );
       setDropdownOpen(false);
     }
   };
@@ -99,6 +131,7 @@ const WorldClock: React.FC = () => {
     });
 
     setSelectedTimezones(updatedTimezones);
+    localStorage.setItem("selectedTimezones", JSON.stringify(updatedTimezones));
   };
 
   return (
@@ -108,52 +141,22 @@ const WorldClock: React.FC = () => {
           className="add-button"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
-          +
+          {dropdownOpen ? "X" : "+"}
         </button>
 
         {dropdownOpen && (
-          <div className="dropdown">
-            <button
-              className="dropdown-close"
-              onClick={() => setDropdownOpen(false)}
-            >
-              X
-            </button>
-            <div className="dropdown-content">
-              {timezones
-                .filter(({ timezone }) => !selectedTimezones.includes(timezone))
-                .map(({ name, timezone }, index) => (
-                  <div
-                    key={index}
-                    className="dropdown-item"
-                    onClick={() => handleAddClock(timezone)}
-                  >
-                    {name}
-                  </div>
-                ))}
-            </div>
-
-            <div
-              className="dropdown-overlay"
-              onClick={() => setDropdownOpen(false)}
-            ></div>
-          </div>
+          <TimezoneDropdown
+            timezones={timezones}
+            selectedTimezones={selectedTimezones}
+            onAddClock={handleAddClock}
+            onClose={() => setDropdownOpen(false)}
+          />
         )}
       </div>
-      <div className="timezone-list">
-        {clocks.map((clock, index) => (
-          <div key={index} className="timezone-item">
-            <div className="timezone-name">{clock.city}</div>
-            <div className="current-time">{clock.time}</div>
-            <button
-              className="delete-button"
-              onClick={() => handleRemoveClock(clock.city)}
-            >
-              Delete
-            </button>
-          </div>
-        ))}
-      </div>
+      <TimezoneList
+        clocks={[{ city: "Bakı", time: localTime }, ...clocks]}
+        onRemoveClock={handleRemoveClock}
+      />
     </div>
   );
 };
