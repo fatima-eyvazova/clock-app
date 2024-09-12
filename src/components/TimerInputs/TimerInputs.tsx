@@ -16,6 +16,26 @@ const TimeInputs: React.FC<TimeInputsProps> = ({
   onSecondsChange,
   setIsEditing,
 }) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    handler: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    max: number
+  ) => {
+    const value = Number(e.target.value);
+    if (value >= 0 && value <= max) {
+      handler(e);
+    }
+  };
+
+  const handleHoursChangeFn = () => (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleInputChange(e, onHoursChange, 99);
+  const handleMinutesChangeFn =
+    () => (e: React.ChangeEvent<HTMLInputElement>) =>
+      handleInputChange(e, onMinutesChange, 59);
+  const handleSecondsChangeFn =
+    () => (e: React.ChangeEvent<HTMLInputElement>) =>
+      handleInputChange(e, onSecondsChange, 59);
+
   return (
     <div className="time-inputs">
       <div className="time-label">
@@ -24,7 +44,7 @@ const TimeInputs: React.FC<TimeInputsProps> = ({
           name="hours"
           value={Math.floor(time / 3600000)}
           onFocus={() => setIsEditing(true)}
-          onChange={onHoursChange}
+          onChange={handleHoursChangeFn()}
           placeholder="00"
           min="0"
         />
@@ -36,7 +56,7 @@ const TimeInputs: React.FC<TimeInputsProps> = ({
           name="minutes"
           value={Math.floor((time % 3600000) / 60000)}
           onFocus={() => setIsEditing(true)}
-          onChange={onMinutesChange}
+          onChange={handleMinutesChangeFn()}
           placeholder="00"
           min="0"
         />
@@ -48,7 +68,7 @@ const TimeInputs: React.FC<TimeInputsProps> = ({
           name="seconds"
           value={Math.floor((time % 60000) / 1000)}
           onFocus={() => setIsEditing(true)}
-          onChange={onSecondsChange}
+          onChange={handleSecondsChangeFn()}
           placeholder="00"
           min="0"
         />
