@@ -53,11 +53,7 @@ const Stopwatch: React.FC = () => {
     }
   }, [savedNow]);
 
-  useEffect(() => {
-    return () => {
-      localStorage.setItem("stopwatch-now", JSON.stringify(Date.now()));
-    };
-  }, []);
+  localStorage.setItem("stopwatch-now", JSON.stringify(Date.now()));
 
   const formatTime = (milliseconds: number) => {
     const minutes = Math.floor(milliseconds / 60000);
